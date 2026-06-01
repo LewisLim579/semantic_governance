@@ -3,15 +3,31 @@
 > AI Agent 개발/관리 표준 — **시맨틱 레이어 원천 저장소**
 > 데이터플랫폼(Databricks) → 시맨틱 레이어(Git 관리) → AWS 솔루션 적재 → AI Agent
 
-이 저장소는 시맨틱 레이어의 **원천(source of truth)** 을 관리합니다.
-업무 의미·관계·규칙은 여기(Git)에서 관리하고, AWS 솔루션(Neptune / Vector Store / Agent 런타임)은
-이 원천을 **빌드(적재)** 한 결과물입니다. **적재본은 직접 수정하지 않으며**, 원천을 수정한 뒤 다시 빌드하여 반영합니다.
+## 한눈에 (TL;DR)
+
+**이 프로젝트는 "데이터의 업무 사전 + 규칙집"을 Git으로 관리하는 곳입니다.**
+
+AI Agent(챗봇/분석 비서)가 회사 데이터를 제대로 이해하고 답하려면, *"매출할인이 뭔지", "주문과 고객이
+어떻게 연결되는지", "쿠폰은 중복 적용이 안 된다는 규칙"* 같은 **업무 지식**이 필요합니다.
+이 저장소는 그 업무 지식을 **사람이 읽고 고칠 수 있는 형태(YAML)** 로 모아 두고, 버전관리·검토·검증을 거쳐
+AI가 쓰는 시스템(그래프DB·벡터DB)에 **자동 반영**되도록 합니다.
+
+| 질문 | 답 |
+|------|----|
+| **무엇인가?** | 데이터에 업무적 의미를 부여하는 **시맨틱 레이어(Semantic Layer)의 원천 저장소** |
+| **왜 필요한가?** | AI/분석이 데이터를 **일관되고 정확하게** 해석하도록, 용어·관계·규칙을 한곳에서 관리하기 위해 |
+| **누가 쓰나?** | **현업**(용어·규칙을 UI로 수정) + **IT/데이터팀**(데이터 연결·검증·적재) |
+| **어떻게 관리하나?** | Git에서 **코드처럼**(PR·리뷰·자동검증·버전) 관리 → 통과 시 AWS에 적재 |
+| **무엇을 만드나?** | concept·relation·rule·mapping·prompt 5종의 YAML 원천 |
+
+> **비유**: 데이터(숫자·표)가 "재료"라면, 이 저장소는 그 재료의 **이름표·레시피·주의사항**입니다.
+> 재료(Databricks)와 요리사(AI Agent)는 그대로 두고, 사전·레시피만 여기서 고치면 전체가 같은 기준으로 움직입니다.
 
 ---
 
 ## 0. 개념 (Concept)
 
-### 무엇을 하는 프로젝트인가
+### 무엇을 하는 프로젝트인가 / 이 저장소의 역할
 
 데이터에 **"업무적 의미"** 를 부여하는 **시맨틱 레이어(Semantic Layer)** 를, 데이터·실행과 분리하여
 **Git에서 코드처럼(버전관리·리뷰·검증)** 관리하기 위한 거버넌스 체계입니다.
@@ -19,6 +35,13 @@
 - **데이터**가 무엇인지(정합성·권한)는 **Databricks**가 관리합니다.
 - 그 데이터가 업무적으로 **무슨 의미·관계·규칙**을 갖는지는 **이 저장소(Git)** 가 관리합니다 ← *원천(SoT)*.
 - **AI Agent**는 두 영역을 직접 고치지 않고, 적재된 지식(그래프·벡터·프롬프트)을 **도구 연계로 조회**해 답변/SQL을 생성합니다.
+
+**이 저장소가 책임지는 것 / 책임지지 않는 것**
+
+| 구분 | 내용 |
+|------|------|
+| ✅ 책임짐 | 업무 용어·관계·규칙·데이터 연결·프롬프트의 **정의(원천)** 와 그 버전·검증·승인 |
+| ❌ 책임지지 않음 | 실제 데이터 적재·정합성(→ Databricks), 그래프/벡터 **물리 저장**(→ AWS), Agent **실행**(→ 런타임) |
 
 ### 3개 영역 분리
 
@@ -55,6 +78,90 @@
 
 > 이 저장소에는 위 개념을 검증하기 위한 **예시 도메인**(거래·재무·마케팅 및 LPG 충전소 영업분석·멤버십)과,
 > 실행 가능한 **검증기(`tools/validate.py`)**, 현업용 **관리 UI(`ui/`)** 가 함께 들어 있습니다.
+
+---
+
+## 0.5 샘플로 이해하기
+
+아래는 실제 저장소에 들어 있는 **거래(trading) 도메인** 예시입니다. 5종 원천이 어떻게 맞물리는지 보여줍니다.
+
+**① concept — 업무 용어(개념) 정의** (`domains/trading/concept.yaml`)
+
+```yaml
+concepts:
+  - id: Order                       # 영문 식별자
+    label: 주문                      # 현업이 부르는 이름(한글)
+    description: 거래 단위 주문
+    parent: common:Transaction       # 공통 개념을 상속
+    properties:
+      - { name: orderId,   type: string,  identifier: true }
+      - { name: amount,    type: decimal }
+      - { name: status,    type: enum, values: [생성, 결제, 취소] }
+    source:
+      structured: gold.trading.orders
+```
+
+**② relation — 개념 간 관계** (`domains/trading/relation.yaml`)
+
+```yaml
+relations:
+  - { id: placedBy, label: 주문자, from: Order, to: Customer, cardinality: "N:1" }
+  - { id: contains, label: 포함,   from: Order, to: Product,  cardinality: "1:N" }
+```
+
+**③ rule — 비즈니스 규칙** (`domains/trading/rule.yaml`)
+
+```yaml
+rules:
+  - id: R-001
+    label: 쿠폰 중복 적용 불가
+    applies_to: Order
+    constraint: "count(appliedCoupon) <= 1"
+    severity: error                  # error=차단 / warning=경고
+    source: "쿠폰정책 v2.1, 3.2항"
+```
+
+**④ mapping — 개념 ↔ 실제 데이터 연결** (`domains/trading/mapping.yaml`)
+
+```yaml
+mappings:
+  - concept: Order
+    catalog: gold.trading.orders     # Databricks(Unity Catalog) 경로
+    key: order_id
+    property_map:
+      orderId: order_id
+      amount:  total_amount
+      status:  order_status
+```
+
+**⑤ prompt — 도메인 AI 지침** (`domains/trading/prompt.yaml`)
+
+```yaml
+prompts:
+  - id: PRM-trading-assistant
+    role: 거래 도메인 Assistant
+    constraints:
+      - 답변에는 반드시 출처(데이터/규칙)를 함께 제시
+      - 규칙 위반 발견 시 근거 규칙 ID 제시
+    output_format: "[답변] + [근거] + [출처]"
+```
+
+### 이 샘플이 실제로 쓰이는 흐름 (예시)
+
+> 사용자 질문: **"이 주문에 쿠폰 2개 적용해도 돼?"**
+
+```
+1) prompt    → "거래 도메인 Assistant" 역할·출처 제시 규칙 로드
+2) concept   → 'Order(주문)' 개념과 속성 파악
+3) rule      → R-001 "쿠폰 중복 적용 불가 (count(appliedCoupon) <= 1)" 발견
+4) mapping   → 필요 시 gold.trading.orders 의 실제 값 조회
+5) 답변      → "불가합니다. 한 주문에 쿠폰은 1개까지입니다.
+              [근거] 규칙 R-001  [출처] 쿠폰정책 v2.1, 3.2항"
+```
+
+> 또 다른 예: LPG 도메인의 **`TMC`** 개념은 `formula: "MC + 수송비 + 지원기회비용 + 임대손익"`,
+> 단위 `원/kg`, 동의어 등을 담고 있어, "TMC가 뭐야?"에 정의·계산식·단위·근거까지 일관되게 답할 수 있습니다.
+> (→ `domains/station_sales/`, `domains/membership/` 참고)
 
 ---
 
