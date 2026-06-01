@@ -1,0 +1,82 @@
+# 멤버십(membership) 도메인 개념(concept)
+# 데이터 항목 정의서 2.2 멤버십 지표군 기반
+# 회원은 common:Customer 를 상속, 충전소는 common:Station 을 참조
+domain: membership
+
+concepts:
+  # ── 엔터티 ─────────────────────────────────────────────
+  - id: Member
+    label: 회원
+    kind: entity
+    description: 멤버십 가입 고객(회원 식별 구조)
+    parent: common:Customer
+    properties:
+      - { name: memberId,         type: string,  identifier: true }
+      - { name: gender,           type: enum, values: [남, 여] }
+      - { name: age,              type: integer }
+      - { name: joinDate,         type: date }
+      - { name: marketingConsent, type: boolean }       # 마케팅수신동의여부
+    note: "기준 기간: 가입 후 탈회 시까지"
+    source: { doc: "데이터 항목 정의서, 2.2 고객 기본 정보" }
+
+  - id: MembershipSubscription
+    label: 멤버십가입
+    kind: entity
+    description: 멤버십 가입 정보(가입 상품·일자·탈회일자·가입충전소)
+    properties:
+      - { name: subscriptionId, type: string, identifier: true }
+      - { name: product,        type: string }
+      - { name: joinDate,       type: date }
+      - { name: withdrawDate,   type: date }
+      - { name: joinSiteCode,   type: string }          # 가입충전소(common:Station.siteCode)
+    source: { doc: "데이터 항목 정의서, 2.2 멤버십 가입 정보" }
+
+  - id: MembershipChargeRecord
+    label: 멤버십충전실적
+    kind: entity
+    description: 고객이 LPG 충전 시 멤버십카드에 적립한 충전 실적(건별)
+    properties:
+      - { name: recordId,     type: string, identifier: true }
+      - { name: chargeVolume, type: decimal }            # 리터(L)
+      - { name: chargeAmount, type: decimal }            # 원
+      - { name: chargedAt,    type: timestamp }
+      - { name: ocbCode,      type: string }
+    note: "충전소 OCB 코드와 Site Code/거래처코드 등 타 코드와 매핑 필요"
+    source: { doc: "데이터 항목 정의서, 2.2 멤버십 충전량/금액" }
+
+  # ── 지표 (measure) ─────────────────────────────────────
+  - id: MembershipChargeVolume
+    label: 멤버십충전량
+    kind: measure
+    unit: L
+    description: 멤버십카드에 적립된 충전량
+    aggregation: 건별
+    note: "OCB 코드 ↔ Site Code/거래처코드 매핑 필요"
+    source: { doc: "데이터 항목 정의서, 2.2 멤버십 충전량" }
+
+  - id: MembershipChargeAmount
+    label: 멤버십충전금액
+    kind: measure
+    unit: 원
+    description: 멤버십카드에 적립된 충전금액
+    aggregation: 건별
+    note: "OCB 코드 ↔ Site Code/거래처코드 매핑 필요"
+    source: { doc: "데이터 항목 정의서, 2.2 멤버십 충전 금액" }
+
+  - id: MembershipSalesVolume
+    label: 멤버십판매량
+    kind: measure
+    unit: kg
+    description: 멤버십 채널을 통한 LPG 판매량(멤버십 비중의 분자)
+    aggregation: 월별/충전소별
+    source: { doc: "데이터 항목 정의서, 2.2 멤버십 비중" }
+
+  - id: MembershipShare
+    label: 멤버십비중
+    kind: measure
+    unit: "%"
+    description: 전체 출고/판매량 대비 멤버십 판매량 비중
+    aggregation: 월별/충전소별
+    formula: "MembershipSalesVolume / SalesVolume"     # SalesVolume = common C4 판매량
+    note: "HMS와 BIS 코드 매핑 필요. 기준기간 최근 3개년"
+    source: { doc: "데이터 항목 정의서, 2.2 멤버십 비중 / 4.#9" }

@@ -1,0 +1,31 @@
+name: semantic-layer-validate
+
+# [활성화 방법] 이 파일을 .github/workflows/validate.yml 로 옮기면 GitHub Actions 자동 검증이 켜집니다.
+#   (푸시하는 토큰에 'workflow' 권한이 있어야 합니다. 권한이 없으면 GitHub 웹 UI 에서 직접 추가하세요.)
+#
+# 원천 변경 시 적재 전 검증 (§3.7) — 검증 통과해야 머지 가능
+on:
+  pull_request:
+    paths:
+      - "common/**"
+      - "domains/**"
+      - ".ci/**"
+      - "tools/**"
+  push:
+    branches: [main, develop]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Validate semantic layer source
+        run: python tools/validate.py

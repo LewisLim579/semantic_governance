@@ -1,0 +1,44 @@
+# 멤버십(membership) 매핑(mapping) — 개념 ↔ Databricks Gold
+# system: 원천 시스템(HMS/OCB) / 코드 매핑 주의(OCB↔SiteCode, HMS↔BIS)
+domain: membership
+
+mappings:
+  - concept: Member
+    source: databricks
+    system: HMS
+    catalog: gold.membership.members
+    key: member_id
+    grain: 고객별
+    property_map:
+      memberId:         member_id
+      gender:           gender
+      age:              age
+      joinDate:         join_date
+      marketingConsent: marketing_consent
+
+  - concept: MembershipSubscription
+    source: databricks
+    system: HMS
+    catalog: gold.membership.subscriptions
+    key: subscription_id
+    grain: 고객별
+    property_map:
+      subscriptionId: subscription_id
+      product:        product_code
+      joinDate:       join_date
+      withdrawDate:   withdraw_date
+      joinSiteCode:   join_site_code
+
+  - concept: MembershipChargeRecord
+    source: databricks
+    system: OCB
+    catalog: gold.membership.charge_records
+    key: record_id
+    grain: 건별
+    property_map:
+      recordId:     record_id
+      chargeVolume: charge_volume_l
+      chargeAmount: charge_amount
+      chargedAt:    charged_at
+      ocbCode:      ocb_code
+    filter: "is_canceled = false"

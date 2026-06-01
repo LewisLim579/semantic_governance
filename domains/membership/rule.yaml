@@ -1,0 +1,24 @@
+# 멤버십(membership) 도메인 규칙(rule)
+domain: membership
+
+rules:
+  - id: R-401
+    label: 멤버십비중 코드 매핑 확인
+    applies_to: MembershipShare
+    constraint: "HMS ↔ BIS 코드 매핑 정합성 확인"
+    severity: error
+    source: "데이터 항목 정의서, 2.2 멤버십 비중 / 6.5"
+
+  - id: R-402
+    label: 멤버십 충전 코드 매핑 확인
+    applies_to: MembershipChargeRecord
+    constraint: "OCB 코드 ↔ Site Code/거래처코드 매핑 필요"
+    severity: error
+    source: "데이터 항목 정의서, 2.2 멤버십 충전량/금액 / 6.5"
+
+  - id: R-403
+    label: 마케팅 발송은 동의 회원 한정
+    applies_to: Member
+    constraint: "marketingConsent == true"
+    severity: error
+    source: "개인정보 마케팅 활용 동의 / 2.2 고객 기본 정보"

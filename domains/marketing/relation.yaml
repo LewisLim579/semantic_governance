@@ -1,0 +1,8 @@
+# 마케팅(marketing) 도메인 관계(relation)
+# Customer, Product 는 common 개념을 재사용한다 (도메인 격리: common 경유 OK)
+domain: marketing
+
+relations:
+  - { id: targetsSegment, label: 대상세그먼트, from: Campaign, to: Segment,  cardinality: "N:M", source: gold.marketing.campaign_segments }
+  - { id: promotes,       label: 홍보상품,     from: Campaign, to: Product,  cardinality: "N:M", source: gold.marketing.campaign_products }
+  - { id: includes,       label: 포함고객,     from: Segment,  to: Customer, cardinality: "1:N", source: gold.marketing.segment_members }

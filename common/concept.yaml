@@ -1,0 +1,93 @@
+# 공통 개념(concept) — 모든 도메인이 상속하는 상위 계층
+# 규칙: id 는 PascalCase, label 은 업무 용어(한글), 출처(source) 기재
+domain: common
+
+concepts:
+  - id: Transaction
+    label: 거래
+    description: 모든 거래성 이벤트의 공통 상위 개념
+    properties:
+      - { name: transactionId, type: string, identifier: true }
+      - { name: occurredAt,    type: timestamp }
+      - { name: amount,        type: decimal }
+      - { name: currency,      type: string }
+    source:
+      doc: "전사 표준용어 사전 v3.0"
+
+  - id: Party
+    label: 거래주체
+    description: 거래에 참여하는 주체(개인·법인)의 공통 상위 개념
+    properties:
+      - { name: partyId, type: string, identifier: true }
+      - { name: name,    type: string }
+      - { name: type,    type: enum, values: [개인, 법인] }
+    source:
+      doc: "전사 표준용어 사전 v3.0"
+
+  - id: Customer
+    label: 고객
+    description: 거래주체 중 당사와 거래관계가 있는 주체
+    parent: common:Party
+    properties:
+      - { name: customerId,   type: string, identifier: true }
+      - { name: gradeCode,    type: string }
+      - { name: registeredAt, type: date }
+    source:
+      doc: "전사 표준용어 사전 v3.0"
+
+  - id: Product
+    label: 상품
+    description: 거래 대상이 되는 상품·서비스의 공통 상위 개념
+    properties:
+      - { name: productId, type: string, identifier: true }
+      - { name: name,      type: string }
+      - { name: category,  type: string }
+    source:
+      doc: "전사 표준용어 사전 v3.0"
+
+  # ── LPG 충전소 영업 공통 개념 ─────────────────────────
+  # station_sales / membership 도메인이 함께 사용하므로 common 으로 승격(§3.4 승격 규칙)
+  - id: Station
+    label: 충전소
+    kind: entity
+    description: LPG 판매/영업 분석의 기본 단위(Location 기반). 분석 기준은 Site Code 중심
+    aliases: [사이트, Site]
+    properties:
+      - { name: siteCode,  type: string, identifier: true }
+      - { name: name,      type: string }
+      - { name: ocbCode,   type: string }            # 멤버십 OCB 연계 코드
+      - { name: isFund,    type: boolean }            # 펀드충전소 여부(총 42개, 변동 가능)
+    note: "거래처(Dealer)와 혼동 주의 — 충전소는 Site Code 기준, 거래처는 거래처코드 기준"
+    source:
+      doc: "데이터 항목 정의서, 3.표준용어사전 #1"
+
+  - id: Dealer
+    label: 거래처
+    kind: entity
+    description: 당사와 거래관계가 있는 대리점(거래처코드 기준)
+    properties:
+      - { name: dealerCode, type: string, identifier: true }
+      - { name: name,       type: string }
+    note: "Site Code ↔ 거래처코드 매핑 필요(지원요청 #2)"
+    source:
+      doc: "데이터 항목 정의서, 3.표준용어사전 #1"
+
+  - id: SalesVolume
+    label: 판매량
+    kind: measure
+    unit: kg
+    description: 충전소별 LPG 판매 실적(C4 판매 기준). 멤버십비중·TMC 등 다수 지표의 분모
+    aliases: [출고량, 실적]
+    aggregation: 월별/충전소별
+    note: "BIS 조회 조건에 따라 값 차이 가능(취소/반품 포함 여부 확인). 출고량과 판매량 기준 차이 확인 필요"
+    source:
+      doc: "데이터 항목 정의서, 1.1 판매량"
+
+  - id: InternalInterestRate
+    label: 사내이자율
+    kind: parameter
+    unit: "%(연)"
+    description: 지원기회비용·보증금 기회비용 단가 산식에 사용되는 연 단위 기준 이자율
+    note: "연간 단위로 변경됨 — 계산 시점의 기준값 확인 필수(6.1)"
+    source:
+      doc: "데이터 항목 정의서, 6.1 연 단위 변경 변수"

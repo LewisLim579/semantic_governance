@@ -1,0 +1,26 @@
+# 재무(finance) 도메인 개념(concept)
+domain: finance
+
+concepts:
+  - id: Payment
+    label: 결제
+    description: 주문에 대한 결제 거래
+    parent: common:Transaction        # 공통 상위 상속
+    properties:
+      - { name: paymentId,   type: string, identifier: true }
+      - { name: paidAt,      type: timestamp }
+      - { name: amount,      type: decimal }
+      - { name: method,      type: enum, values: [카드, 계좌이체, 포인트] }
+      - { name: status,      type: enum, values: [승인, 실패, 환불] }
+    source:
+      structured: gold.finance.payments
+
+  - id: Account
+    label: 계좌
+    description: 자금이 입출금되는 계좌
+    properties:
+      - { name: accountId,  type: string, identifier: true }
+      - { name: balance,    type: decimal }
+      - { name: openedAt,   type: date }
+    source:
+      structured: gold.finance.accounts

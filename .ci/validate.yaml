@@ -1,0 +1,77 @@
+# 적재 전 검증(validate) 정의
+# main 병합 및 적재 파이프라인 실행 전, 원천 정합성을 검증한다.
+version: "1.0"
+
+# ── 검증 대상 파일 패턴 ──────────────────────────────
+targets:
+  common:
+    - common/concept.yaml
+    - common/relation.yaml
+    - common/rule.yaml
+  domains:
+    - domains/*/concept.yaml
+    - domains/*/relation.yaml
+    - domains/*/rule.yaml
+    - domains/*/mapping.yaml
+    - domains/*/prompt.yaml
+
+# ── 검증 항목 ───────────────────────────────────────
+checks:
+  # 1) 스키마 유효성: YAML 구조·필수 필드 검사
+  - id: schema_validity
+    description: "각 YAML 파일이 필수 필드를 갖추는지 검사"
+    severity: error
+    required_fields:
+      concept:  [domain, concepts]
+      relation: [domain, relations]
+      rule:     [domain, rules]
+      mapping:  [domain, mappings]
+      prompt:   [domain, prompts]
+
+  # 2) ID 네이밍 규칙
+  - id: id_naming
+    description: "concept=PascalCase, relation=camelCase, rule=R-###"
+    severity: error
+    patterns:
+      concept:  "^[A-Z][A-Za-z0-9]*$"
+      relation: "^[a-z][A-Za-z0-9]*$"
+      rule:     "^R-[0-9]{3}$"
+
+  # 3) 참조 무결성: relation 의 from/to 가 concept 에 존재하는지
+  #    (common: 접두는 common/concept.yaml 에서 해석)
+  - id: reference_integrity
+    description: "relation.from / relation.to 가 정의된 concept 인지 확인"
+    severity: error
+    resolve_namespace: true   # 'common:' 접두 해석
+
+  # 4) 상속 무결성: parent 가 존재하는 개념인지
+  - id: inheritance_integrity
+    description: "concept.parent 가 존재하는 개념(주로 common:)인지 확인"
+    severity: error
+
+  # 5) 매핑 정합성: mapping.catalog 경로·컬럼이 존재하는지 (Unity Catalog 조회)
+  - id: mapping_consistency
+    description: "mapping 의 catalog 경로와 property_map 컬럼이 Gold 에 존재하는지"
+    severity: error
+    source: databricks
+    verify:
+      - catalog_exists
+      - columns_exist
+      - key_column_exists
+
+  # 6) 규칙 표현 검사: rule.constraint 가 해석 가능한지
+  - id: rule_expression
+    description: "rule.constraint 가 파싱 가능한 표현식인지 확인"
+    severity: error
+    allowed_severity_values: [error, warning]
+
+  # 7) 도메인 격리: 도메인 간 직접 참조 없이 common 경유
+  - id: domain_isolation
+    description: "도메인 정의가 다른 도메인을 직접 참조하지 않는지 (common 만 허용)"
+    severity: warning
+
+# ── 머지 조건 ───────────────────────────────────────
+merge_policy:
+  block_on: [error]          # error 가 하나라도 있으면 머지 차단
+  warn_on: [warning]         # warning 은 경고만 표시
+  require_approvals: 1       # Domain Expert 1인 이상 승인

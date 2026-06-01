@@ -1,0 +1,51 @@
+# 충전소 영업분석(station_sales) 매핑(mapping) — 개념 ↔ Databricks Gold
+# system: 원천 시스템(BIS/ERP) / grain: 집계 단위 / key: Site Code 기준
+# 주의: 공통 개념(SalesVolume 등)의 매핑은 common 기준으로 별도 관리
+domain: station_sales
+
+mappings:
+  - concept: TMC
+    source: databricks
+    system: BIS                          # BIS TMC 화면 기준
+    catalog: gold.station.tmc_monthly    # Unity Catalog 경로
+    key: site_code
+    grain: 월별/충전소별
+    property_map:
+      TMC: tmc_unit_price
+    filter: "is_canceled = false"
+
+  - concept: PriceDiscount
+    source: databricks
+    system: BIS
+    catalog: gold.station.price_discount
+    key: site_code
+    grain: 월별/충전소별
+    property_map:
+      PriceDiscount: price_discount_unit
+
+  - concept: SalesDiscountAmount
+    source: databricks
+    system: ERP                          # 지사 수기 입력분 반영(6.3)
+    catalog: gold.station.sales_discount
+    key: site_code
+    grain: 월별/충전소별
+    property_map:
+      SalesDiscountAmount: sales_discount_amount
+
+  - concept: LandTransportAmount
+    source: databricks
+    system: BIS
+    catalog: gold.station.transport_cost
+    key: site_code
+    grain: 월별/충전소별
+    property_map:
+      LandTransportAmount: land_transport_amount
+
+  - concept: LoanAmount
+    source: databricks
+    system: ERP
+    catalog: gold.station.support_balance
+    key: site_code
+    grain: 월별/충전소별
+    property_map:
+      LoanAmount: loan_amount

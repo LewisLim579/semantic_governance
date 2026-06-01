@@ -1,0 +1,24 @@
+# 거래(trading) 도메인 매핑(mapping) — 개념 ↔ Databricks Gold 연결
+# mapping 은 시맨틱 레이어와 Databricks 를 연결하는 기준이다.
+domain: trading
+
+mappings:
+  - concept: Order
+    source: databricks
+    catalog: gold.trading.orders      # Unity Catalog 경로
+    key: order_id
+    property_map:
+      orderId:   order_id
+      orderDate: order_date
+      amount:    total_amount
+      status:    order_status
+    filter: "is_deleted = false"      # 선택: 적재 조건
+
+  - concept: Coupon
+    source: databricks
+    catalog: gold.trading.coupons
+    key: coupon_id
+    property_map:
+      couponId:     coupon_id
+      discountRate: discount_rate
+      validUntil:   valid_until

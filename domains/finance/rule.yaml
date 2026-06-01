@@ -1,0 +1,24 @@
+# 재무(finance) 도메인 규칙(rule)
+domain: finance
+
+rules:
+  - id: R-101
+    label: 결제금액과 주문금액 일치
+    applies_to: Payment
+    constraint: "amount == order.amount"
+    severity: error
+    source: "정산 표준 v1.0, 2.2항"
+
+  - id: R-102
+    label: 환불은 승인 건에 한함
+    applies_to: Payment
+    constraint: "status == '환불' implies exists(prior status == '승인')"
+    severity: error
+    source: "정산 표준 v1.0, 5.1항"
+
+  - id: R-103
+    label: 계좌 잔액 음수 경고
+    applies_to: Account
+    constraint: "balance >= 0"
+    severity: warning
+    source: "정산 표준 v1.0, 3.4항"

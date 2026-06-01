@@ -1,0 +1,26 @@
+# 마케팅(marketing) 도메인 매핑(mapping) — 개념 ↔ Databricks Gold 연결
+domain: marketing
+
+mappings:
+  - concept: Campaign
+    source: databricks
+    catalog: gold.marketing.campaigns   # Unity Catalog 경로
+    key: campaign_id
+    property_map:
+      campaignId: campaign_id
+      name:       campaign_name
+      channel:    channel
+      budget:     budget_amount
+      startDate:  start_date
+      endDate:    end_date
+      status:     campaign_status
+    filter: "is_deleted = false"
+
+  - concept: Segment
+    source: databricks
+    catalog: gold.marketing.segments
+    key: segment_id
+    property_map:
+      segmentId: segment_id
+      name:      segment_name
+      criteria:  criteria_expr

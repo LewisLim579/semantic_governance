@@ -1,0 +1,15 @@
+# Domain Expert 승인 체계 (§3.7) — PR 시 해당 경로 소유자 승인 필요
+# 실제 GitHub 팀/계정으로 교체하세요. (예: @org/trading-experts)
+
+# 공통 계층은 데이터 거버넌스 팀이 관리
+/common/                @data-governance
+
+# 도메인별 Domain Expert
+/domains/trading/       @trading-domain-expert
+/domains/finance/       @finance-domain-expert
+/domains/marketing/     @marketing-domain-expert
+
+# 검증/CI/도구는 플랫폼 팀
+/.ci/                   @platform-team
+/tools/                 @platform-team
+/.github/               @platform-team

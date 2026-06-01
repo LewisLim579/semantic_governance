@@ -1,0 +1,25 @@
+# 거래(trading) 도메인 개념(concept)
+domain: trading
+
+concepts:
+  - id: Order
+    label: 주문
+    description: 거래 단위 주문
+    parent: common:Transaction        # 공통 상위 상속
+    properties:
+      - { name: orderId,   type: string,  identifier: true }
+      - { name: orderDate, type: date }
+      - { name: amount,    type: decimal }
+      - { name: status,    type: enum, values: [생성, 결제, 취소] }
+    source:
+      structured: gold.trading.orders
+
+  - id: Coupon
+    label: 쿠폰
+    description: 주문에 적용 가능한 할인 쿠폰
+    properties:
+      - { name: couponId,       type: string, identifier: true }
+      - { name: discountRate,   type: decimal }
+      - { name: validUntil,     type: date }
+    source:
+      structured: gold.trading.coupons

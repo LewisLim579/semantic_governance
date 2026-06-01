@@ -1,0 +1,45 @@
+# 시맨틱 레이어 원천 매니페스트 (도메인 레지스트리 + 버전)
+# 적재 파이프라인과 UI 가 이 파일을 기준으로 도메인 목록을 인식한다.
+version: "0.1.0"            # Semantic Versioning (원천 전체 버전)
+updated: "2026-05-29"
+
+common:
+  path: common
+  files: [concept.yaml, relation.yaml, rule.yaml]
+
+domains:
+  - id: trading
+    label: 거래
+    path: domains/trading
+    owner: trading-domain-expert     # CODEOWNERS 와 일치시킬 식별자(추후 실제 계정 지정)
+    status: active
+
+  - id: finance
+    label: 재무
+    path: domains/finance
+    owner: finance-domain-expert
+    status: active
+
+  - id: marketing
+    label: 마케팅
+    path: domains/marketing
+    owner: marketing-domain-expert
+    status: active
+
+  - id: station_sales
+    label: 충전소 영업분석(TMC)
+    path: domains/station_sales
+    owner: station-sales-domain-expert
+    status: active
+
+  - id: membership
+    label: 멤버십
+    path: domains/membership
+    owner: membership-domain-expert
+    status: active
+
+# 적재 대상(AWS) — 원천이 빌드되어 반영되는 곳 (참고용)
+targets:
+  graph: amazon-neptune
+  vector: s3-vectors            # s3-vectors | opensearch | neptune-analytics 중 택1
+  prompt_store: agent-runtime

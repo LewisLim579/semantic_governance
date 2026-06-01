@@ -1,0 +1,44 @@
+domain: station_sales
+rules:
+- id: R-301
+  label: 임대료 부호 (−) 적용
+  applies_to: RentProfitLoss
+  constraint: 임대손익 = (− 임대료단가) + 임차료단가 + 보증금기회비용단가
+  severity: warning
+  source: 데이터 항목 정의서, 6.2 부호 적용
+- label: TMC 산정 시 펀드임차료 제외
+  constraint: TMC.임차료 = 임차료 − 펀드임차료
+  severity: warning
+  applies_to: TMC
+  source: 데이터 항목 정의서, 6.4 TMC 산정 제외 항목
+  id: R-302
+- id: R-303
+  label: 매출할인 수기 입력 항목
+  applies_to: SalesDiscountAmount
+  constraint: source = 지사별 사무서기 수기 입력
+  severity: warning
+  source: 데이터 항목 정의서, 6.3 수기 입력 항목
+- id: R-304
+  label: 손익분기 — 할인총액 공헌이익단가 초과 시 손실
+  applies_to: ProfitContributionUnit
+  constraint: 거래처할인총액 <= ContributionMarginUnit
+  severity: warning
+  source: 데이터 항목 정의서, 1.1 공헌이익단가
+- id: R-305
+  label: 연 단위 변경 기준값 확인
+  applies_to: TMC
+  constraint: 사내이자율·공헌이익단가는 계산 시점의 연도 기준값 사용
+  severity: error
+  source: 데이터 항목 정의서, 6.1 연 단위 변경 변수
+- id: R-306
+  label: 월/연 환산 분모 규칙
+  applies_to: SupportOpportunityCost
+  constraint: 단가 산정 시 분모 N — 월 단위=12, 연 단위=1
+  severity: error
+  source: 데이터 항목 정의서, 6.6 월/연 단위 환산 규칙
+- id: R-307
+  label: 판매량 BIS 조회조건 확인
+  applies_to: SalesVolume
+  constraint: 취소/반품 포함 여부 및 BIS 조회 조건 확인
+  severity: warning
+  source: 데이터 항목 정의서, 6.5 데이터 정합성

@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>업무 용어·규칙 관리</title>
+<link rel="stylesheet" as="style" crossorigin
+  href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css" />
+<style>
+  :root {
+    --bg:#f4f6fb; --panel:#ffffff; --line:#e2e8f0; --line2:#cbd5e1;
+    --text:#1e293b; --muted:#64748b; --accent:#2563eb; --accent-soft:#eff4ff;
+    --ok:#16a34a; --ok-soft:#ecfdf3; --warn:#d97706; --err:#dc2626; --err-soft:#fef2f2;
+    --radius:12px;
+  }
+  * { box-sizing:border-box; }
+  :root { --font:"Pretendard Variable",Pretendard,-apple-system,"Segoe UI",Roboto,"Malgun Gothic",sans-serif; }
+  body { margin:0; font-family:var(--font);
+    background:var(--bg); color:var(--text); height:100vh; display:flex; flex-direction:column;
+    font-size:14px; -webkit-font-smoothing:antialiased; }
+  header { padding:14px 22px; background:var(--panel); border-bottom:1px solid var(--line);
+    display:flex; align-items:center; gap:12px; }
+  header h1 { font-size:17px; margin:0; font-weight:700; }
+  header .sub { color:var(--muted); font-size:13px; }
+  .layout { flex:1; display:flex; min-height:0; }
+
+  /* 사이드바 */
+  aside { width:280px; background:var(--panel); border-right:1px solid var(--line);
+    overflow-y:auto; padding:14px 10px; }
+  details.dom { margin-bottom:6px; }
+  details.dom > summary { list-style:none; cursor:pointer; padding:10px 12px; border-radius:10px;
+    font-weight:700; font-size:14px; display:flex; align-items:center; gap:8px; }
+  details.dom > summary::-webkit-details-marker { display:none; }
+  details.dom > summary:hover { background:var(--bg); }
+  details.dom > summary .en { color:var(--muted); font-weight:400; font-size:11px; }
+  details.dom > summary .arrow { margin-left:auto; color:var(--muted); transition:transform .15s; }
+  details.dom[open] > summary .arrow { transform:rotate(90deg); }
+  .cat { padding:9px 12px 9px 34px; border-radius:9px; cursor:pointer; font-size:13.5px;
+    display:flex; align-items:center; gap:9px; color:var(--text); }
+  .cat:hover { background:var(--accent-soft); }
+  .cat.active { background:var(--accent); color:#fff; font-weight:600; }
+  .cat .ic { width:22px; height:22px; border-radius:6px; background:var(--accent-soft);
+    color:var(--accent); display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; flex-shrink:0; }
+  .cat.active .ic { background:rgba(255,255,255,.25); color:#fff; }
+
+  main { flex:1; display:flex; flex-direction:column; min-width:0; }
+  .crumb { padding:14px 24px 0; }
+  .crumb h2 { margin:0; font-size:18px; font-weight:700; }
+  .crumb .desc { color:var(--muted); font-size:13px; margin-top:4px; line-height:1.5; }
+  .content { flex:1; overflow-y:auto; padding:18px 24px; }
+  .empty { color:var(--muted); text-align:center; margin-top:80px; font-size:15px; line-height:1.7; }
+
+  /* 목록(카드) */
+  .toolbar2 { display:flex; align-items:center; margin-bottom:14px; gap:10px; }
+  .toolbar2 .count { color:var(--muted); font-size:13px; }
+  .row { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+    padding:14px 16px; margin-bottom:10px; display:flex; align-items:center; gap:14px; }
+  .row .main { flex:1; min-width:0; }
+  .row .name { font-size:15px; font-weight:700; }
+  .row .name small { color:var(--muted); font-weight:400; font-size:12px; margin-left:7px; }
+  .row .meta { color:var(--muted); font-size:13px; margin-top:3px; overflow:hidden;
+    text-overflow:ellipsis; white-space:nowrap; }
+  .tag { display:inline-block; background:var(--accent-soft); color:var(--accent);
+    border-radius:20px; padding:2px 9px; font-size:11.5px; font-weight:600; margin-right:5px; }
+  .tag.warn { background:#fef3c7; color:var(--warn); }
+  .tag.err  { background:var(--err-soft); color:var(--err); }
+
+  /* 버튼 */
+  button { font-size:13px; padding:8px 14px; border-radius:9px; cursor:pointer; border:1px solid var(--line2);
+    background:var(--panel); color:var(--text); font-weight:600; }
+  button:hover { background:var(--bg); }
+  button.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+  button.primary:hover { filter:brightness(1.05); background:var(--accent); }
+  button.danger { color:var(--err); border-color:#fecaca; }
+  button.danger:hover { background:var(--err-soft); }
+  button.ghost { border-color:transparent; background:transparent; color:var(--accent); }
+  .spacer { flex:1; }
+
+  /* 입력 양식 */
+  .formwrap { max-width:760px; }
+  .field { margin-bottom:18px; }
+  .field > label { display:block; font-weight:700; font-size:14px; margin-bottom:5px; }
+  .field .help { color:var(--muted); font-size:12.5px; margin-bottom:7px; line-height:1.5; }
+  .field input[type=text], .field textarea, .field select {
+    width:100%; background:#fff; color:var(--text); border:1px solid var(--line2);
+    border-radius:9px; padding:10px 12px; font-size:14px; font-family:inherit; }
+  .field textarea { min-height:74px; resize:vertical; line-height:1.55; }
+  .field input:focus, .field textarea:focus, .field select:focus {
+    outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+  .adv { margin-top:8px; border:1px dashed var(--line2); border-radius:var(--radius); padding:0 16px; }
+  .adv > summary { cursor:pointer; padding:12px 0; font-weight:700; color:var(--muted); font-size:13.5px;
+    list-style:none; }
+  .adv > summary::-webkit-details-marker { display:none; }
+  .adv > summary:before { content:"▸ "; }
+  .adv[open] > summary:before { content:"▾ "; }
+  .adv .field:last-child { margin-bottom:16px; }
+
+  /* 미니 표 (속성/매핑) */
+  table.mini { width:100%; border-collapse:collapse; margin-bottom:8px; }
+  table.mini th { text-align:left; font-size:12px; color:var(--muted); font-weight:600; padding:4px 6px; }
+  table.mini td { padding:3px 6px; }
+  table.mini input, table.mini select { width:100%; padding:7px 9px; border:1px solid var(--line2);
+    border-radius:7px; font-size:13px; font-family:inherit; }
+  table.mini td.del { width:34px; text-align:center; }
+  .addrow { font-size:12.5px; padding:6px 10px; }
+
+  .formbar { position:sticky; bottom:0; background:var(--panel); border-top:1px solid var(--line);
+    padding:14px 24px; display:flex; gap:10px; align-items:center; margin:0 -24px -18px; }
+
+  /* 결과 안내 */
+  .result { padding:14px 16px; border-radius:var(--radius); margin-bottom:14px; font-size:13.5px;
+    line-height:1.6; display:none; }
+  .result.ok { background:var(--ok-soft); color:#166534; border:1px solid #bbf7d0; }
+  .result.bad { background:var(--err-soft); color:#991b1b; border:1px solid #fecaca; }
+  .result pre { margin:8px 0 0; white-space:pre-wrap; font-size:12.5px; font-family:var(--font); }
+
+  .toast { position:fixed; bottom:22px; left:50%; transform:translateX(-50%); background:#0f172a;
+    color:#fff; padding:11px 18px; border-radius:10px; font-size:13.5px; opacity:0; pointer-events:none;
+    transition:opacity .2s; z-index:50; }
+  .toast.show { opacity:1; }
+  .rawbox { width:100%; min-height:420px; font-family:ui-monospace,monospace; font-size:13px;
+    border:1px solid var(--line2); border-radius:var(--radius); padding:14px; line-height:1.55; }
+</style>
+</head>
+<body>
+<header>
+  <h1>업무 용어·규칙 관리</h1>
+  <span class="sub">현업이 직접 용어와 규칙을 고치는 화면입니다. 저장하면 자동으로 점검해 드려요.</span>
+</header>
+<div class="layout">
+  <aside id="tree"></aside>
+  <main>
+    <div class="crumb">
+      <h2 id="crumbTitle">시작하기</h2>
+      <div class="desc" id="crumbDesc">왼쪽에서 분야를 고르고, 보고 싶은 항목을 선택하세요.</div>
+    </div>
+    <div class="content" id="content">
+      <div class="empty">왼쪽 목록에서 <b>분야 → 항목</b>을 선택하면<br>해당 내용이 카드로 표시됩니다.</div>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ───────── 사람이 읽는 라벨 ───────── */
+const DOMAIN_KO = {
+  common:"공통", trading:"거래", finance:"재무", marketing:"마케팅",
+  station_sales:"충전소 영업분석", membership:"멤버십",
+};
+const CAT = {
+  "concept.yaml":  {ko:"개념",       ic:"개", listKey:"concepts",  desc:"업무에서 쓰는 용어·대상(예: 주문, 충전소)과 그 단위·설명을 정의합니다."},
+  "relation.yaml": {ko:"관계",       ic:"관", listKey:"relations", desc:"개념과 개념이 어떻게 연결되는지(예: 주문은 고객이 한다)를 정의합니다."},
+  "rule.yaml":     {ko:"규칙",       ic:"규", listKey:"rules",     desc:"지켜야 할 업무 규칙·제약(예: 쿠폰 중복 적용 불가)을 정의합니다."},
+  "mapping.yaml":  {ko:"데이터 연결", ic:"데", listKey:"mappings",  desc:"용어가 실제 데이터의 어느 항목과 연결되는지 정의합니다. (주로 IT 담당자)"},
+  "prompt.yaml":   {ko:"AI 지침",    ic:"AI", listKey:"prompts",   desc:"이 분야 AI 비서가 따라야 할 역할과 지침을 정의합니다."},
+};
+const CAT_ORDER = ["concept.yaml","relation.yaml","rule.yaml","mapping.yaml","prompt.yaml"];
+
+/* ───────── 유형별 입력 양식 정의 ─────────
+   w(위젯): text|textarea|select|tags|lines|props|kv|source
+   tier: basic(현업) | advanced(IT/전문가, 접어둠) */
+const TYPE_OPTS = [["","(미지정)"],["string","문자"],["date","날짜"],["timestamp","일시"],
+  ["decimal","소수"],["integer","정수"],["boolean","예/아니오"],["enum","선택지(목록)"]];
+const SCHEMA = {
+  concepts: {
+    titleField:"label", template:{id:"",label:"",description:"",unit:""},
+    fields:[
+      {k:"label",ko:"표시명(한글 이름)",w:"text",tier:"basic",ph:"예: 주문",help:"현업에서 부르는 이름입니다."},
+      {k:"description",ko:"설명",w:"textarea",tier:"basic",ph:"이 용어가 무엇인지 한두 문장으로",help:""},
+      {k:"unit",ko:"단위",w:"text",tier:"basic",ph:"예: 원/kg, 원, kg, %, L",help:"숫자로 측정되는 값이면 단위를 적어주세요."},
+      {k:"aliases",ko:"같은 뜻 표현(동의어)",w:"tags",tier:"basic",help:"쉼표(,)로 구분해 입력. 예: 출고량, 실적"},
+      {k:"formula",ko:"계산식",w:"text",tier:"basic",ph:"예: 공헌이익단가 − TMC",help:"다른 값으로 계산된다면 식을 적어주세요. (없으면 비워둠)"},
+      {k:"note",ko:"주의사항·메모",w:"textarea",tier:"basic",help:"해석 기준, 주의할 점 등"},
+      {k:"kind",ko:"종류",w:"select",tier:"advanced",options:[["","(미지정)"],["entity","대상"],["measure","지표(측정값)"],["parameter","기준값"]]},
+      {k:"aggregation",ko:"집계 기준",w:"text",tier:"advanced",ph:"예: 월별/충전소별"},
+      {k:"id",ko:"영문 ID",w:"text",tier:"advanced",help:"IT 담당자용. 영문, 첫 글자 대문자(예: Order)."},
+      {k:"parent",ko:"상위 개념",w:"text",tier:"advanced",ph:"예: common:Transaction"},
+      {k:"properties",ko:"속성 목록",w:"props",tier:"advanced"},
+      {k:"values_by_year",ko:"연도별 값",w:"kv",tier:"advanced",kko:"연도",vko:"값"},
+      {k:"source",ko:"출처",w:"source",tier:"advanced"},
+    ]},
+  relations:{
+    titleField:"label", template:{id:"",label:"",from:"",to:"",cardinality:"N:1"},
+    fields:[
+      {k:"label",ko:"표시명(한글 이름)",w:"text",tier:"basic",ph:"예: 주문자",help:""},
+      {k:"from",ko:"시작 개념",w:"text",tier:"basic",ph:"예: Order",help:"관계가 시작되는 개념의 영문 ID"},
+      {k:"to",ko:"끝 개념",w:"text",tier:"basic",ph:"예: Customer",help:"관계가 향하는 개념의 영문 ID"},
+      {k:"cardinality",ko:"관계 수",w:"select",tier:"basic",options:[["1:1","1:1 (일대일)"],["N:1","N:1 (여럿이 하나)"],["1:N","1:N (하나가 여럿)"],["N:M","N:M (여럿이 여럿)"]]},
+      {k:"id",ko:"영문 ID",w:"text",tier:"advanced",help:"IT 담당자용. 영문, 첫 글자 소문자(예: placedBy)."},
+      {k:"source",ko:"출처",w:"source",tier:"advanced"},
+    ]},
+  rules:{
+    titleField:"label", template:{id:"",label:"",applies_to:"",constraint:"",severity:"error"},
+    fields:[
+      {k:"label",ko:"규칙 이름",w:"text",tier:"basic",ph:"예: 쿠폰 중복 적용 불가",help:""},
+      {k:"constraint",ko:"규칙 내용",w:"textarea",tier:"basic",ph:"예: 한 주문에 쿠폰은 1개까지",help:"지켜야 할 조건을 업무 언어로 적어주세요."},
+      {k:"severity",ko:"중요도",w:"select",tier:"basic",options:[["error","꼭 지켜야 함 (위반 시 차단)"],["warning","권고 (위반 시 경고)"]]},
+      {k:"applies_to",ko:"적용 대상",w:"text",tier:"basic",ph:"예: Order",help:"이 규칙이 적용되는 개념의 영문 ID"},
+      {k:"source",ko:"근거 출처",w:"source",tier:"basic",help:"규칙의 근거 문서·조항"},
+      {k:"id",ko:"규칙 번호",w:"text",tier:"advanced",help:"형식: R-숫자3자리 (예: R-001)"},
+    ]},
+  mappings:{
+    titleField:"concept", template:{concept:"",catalog:"",key:"",property_map:{}},
+    fields:[
+      {k:"concept",ko:"대상 개념",w:"text",tier:"basic",ph:"예: Order",help:"연결할 개념의 영문 ID"},
+      {k:"catalog",ko:"데이터 경로",w:"text",tier:"basic",ph:"예: gold.trading.orders",help:"실제 데이터가 있는 표의 경로"},
+      {k:"key",ko:"키 컬럼",w:"text",tier:"basic",ph:"예: order_id"},
+      {k:"property_map",ko:"속성 ↔ 컬럼 연결",w:"kv",tier:"basic",kko:"개념 속성",vko:"데이터 컬럼"},
+      {k:"system",ko:"원천 시스템",w:"text",tier:"advanced",ph:"예: BIS, ERP, HMS, OCB"},
+      {k:"grain",ko:"집계 단위",w:"text",tier:"advanced",ph:"예: 월별/충전소별"},
+      {k:"filter",ko:"필터 조건",w:"text",tier:"advanced",ph:"예: is_deleted = false"},
+      {k:"source",ko:"원천 구분",w:"text",tier:"advanced",ph:"예: databricks"},
+    ]},
+  prompts:{
+    titleField:"role", template:{id:"",role:"",constraints:[],output_format:""},
+    fields:[
+      {k:"role",ko:"AI 비서 역할",w:"text",tier:"basic",ph:"예: 거래 도메인 Assistant",help:""},
+      {k:"constraints",ko:"지켜야 할 지침",w:"lines",tier:"basic",help:"한 줄에 하나씩 적어주세요."},
+      {k:"output_format",ko:"답변 형식",w:"text",tier:"basic",ph:"예: [답변] + [근거] + [출처]"},
+      {k:"id",ko:"영문 ID",w:"text",tier:"advanced",help:"예: PRM-trading-assistant"},
+    ]},
+};
+
+let state = { path:null, data:null, listKey:null, view:"list", editIdx:-1 };
+let editors = [];
+
+async function api(url, opts){ const r = await fetch(url, opts); return r.json(); }
+function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"), 2200); }
+
+/* ───────── 사이드바 ───────── */
+async function loadTree(){
+  const tree = await api("/api/tree");
+  const el = document.getElementById("tree"); el.innerHTML="";
+  const entries = [["common", tree.common]].concat(Object.entries(tree.domains));
+  entries.forEach(([dom, files], i)=>{
+    const d = document.createElement("details"); d.className="dom"; if(i===0) d.open=true;
+    const s = document.createElement("summary");
+    s.innerHTML = `${DOMAIN_KO[dom]||dom} <span class="en">${dom}</span><span class="arrow">›</span>`;
+    d.appendChild(s);
+    CAT_ORDER.filter(f=>files.includes(f)).forEach(f=>{
+      const c = CAT[f]; const path = (dom==="common"?"common/":`domains/${dom}/`)+f;
+      const row = document.createElement("div"); row.className="cat"; row.dataset.path=path;
+      row.innerHTML = `<span class="ic">${c.ic}</span>${c.ko}`;
+      row.onclick = ()=>openFile(path);
+      d.appendChild(row);
+    });
+    el.appendChild(d);
+  });
+}
+
+async function openFile(path){
+  document.querySelectorAll(".cat").forEach(c=>c.classList.toggle("active", c.dataset.path===path));
+  const res = await api("/api/file?path="+encodeURIComponent(path));
+  state.path=path; state.data=res.data||{};
+  const parts=path.split("/"); const fname=parts[parts.length-1];
+  const dom = parts[0]==="common"?"common":parts[1];
+  state.listKey = CAT[fname].listKey;
+  if(!Array.isArray(state.data[state.listKey])) state.data[state.listKey]=[];
+  document.getElementById("crumbTitle").textContent = `${DOMAIN_KO[dom]||dom} · ${CAT[fname].ko}`;
+  document.getElementById("crumbDesc").textContent = CAT[fname].desc;
+  state.view="list"; renderList();
+}
+
+/* ───────── 목록 보기 ───────── */
+function itemTitle(item){
+  const sch = SCHEMA[state.listKey];
+  return item[sch.titleField] || item.id || item.label || "(이름 없음)";
+}
+function itemSummary(item){
+  switch(state.listKey){
+    case "concepts": return [item.unit?`<span class="tag">${item.unit}</span>`:"", item.description||item.note||""].join(" ");
+    case "relations": return `${item.from||"?"} → ${item.to||"?"} <span class="tag">${item.cardinality||""}</span>`;
+    case "rules": { const sev=item.severity==="warning"?'<span class="tag warn">권고</span>':'<span class="tag err">필수</span>';
+      return `${sev}${item.constraint||""}`; }
+    case "mappings": return `<span class="tag">${item.system||"데이터"}</span>${item.catalog||""}`;
+    case "prompts": return item.role||"";
+  }
+  return "";
+}
+function renderList(){
+  const c=document.getElementById("content"); c.innerHTML="";
+  const sch=SCHEMA[state.listKey]; const list=state.data[state.listKey];
+  const bar=document.createElement("div"); bar.className="toolbar2";
+  bar.innerHTML=`<span class="count">전체 ${list.length}개</span><span class="spacer"></span>`;
+  const add=document.createElement("button"); add.className="primary"; add.textContent="+ 새로 추가";
+  add.onclick=()=>startEdit(-1); bar.appendChild(add);
+  c.appendChild(bar);
+
+  if(list.length===0){
+    const e=document.createElement("div"); e.className="empty";
+    e.innerHTML="아직 등록된 항목이 없습니다.<br>오른쪽 위 <b>+ 새로 추가</b> 버튼으로 만들어 보세요.";
+    c.appendChild(e); return;
+  }
+  list.forEach((item,idx)=>{
+    const r=document.createElement("div"); r.className="row";
+    r.innerHTML=`<div class="main"><div class="name">${esc(itemTitle(item))}${item.id&&item.id!==itemTitle(item)?`<small>${esc(item.id)}</small>`:""}</div>
+      <div class="meta">${itemSummary(item)}</div></div>`;
+    const edit=document.createElement("button"); edit.textContent="수정"; edit.onclick=()=>startEdit(idx);
+    const del=document.createElement("button"); del.className="danger"; del.textContent="삭제";
+    del.onclick=()=>{ if(confirm(`'${itemTitle(item)}' 항목을 삭제할까요?`)){ list.splice(idx,1); save(()=>renderList()); } };
+    r.appendChild(edit); r.appendChild(del); c.appendChild(r);
+  });
+}
+
+/* ───────── 편집 양식 ───────── */
+function startEdit(idx){
+  state.view="edit"; state.editIdx=idx;
+  const sch=SCHEMA[state.listKey];
+  const item = idx>=0 ? state.data[state.listKey][idx] : JSON.parse(JSON.stringify(sch.template));
+  renderEdit(item, idx<0);
+}
+function renderEdit(item, isNew){
+  const c=document.getElementById("content"); c.innerHTML=""; editors=[];
+  const wrap=document.createElement("div"); wrap.className="formwrap";
+
+  const result=document.createElement("div"); result.id="result"; result.className="result"; wrap.appendChild(result);
+
+  const basic=document.createElement("div");
+  const adv=document.createElement("details"); adv.className="adv";
+  adv.innerHTML='<summary>고급 설정 (IT 담당자용) — 영문 ID·데이터 연결 등</summary>';
+  let advCount=0;
+  SCHEMA[state.listKey].fields.forEach(f=>{
+    const node=buildField(f, item[f.k]);
+    if(f.tier==="advanced"){ adv.appendChild(node); advCount++; } else basic.appendChild(node);
+  });
+  wrap.appendChild(basic);
+  if(advCount) wrap.appendChild(adv);
+
+  const bar=document.createElement("div"); bar.className="formbar";
+  const saveBtn=document.createElement("button"); saveBtn.className="primary"; saveBtn.textContent="저장하기";
+  saveBtn.onclick=()=>commitEdit();
+  const cancel=document.createElement("button"); cancel.textContent="취소"; cancel.onclick=()=>renderList();
+  bar.appendChild(saveBtn); bar.appendChild(cancel);
+  const sp=document.createElement("span"); sp.className="spacer"; bar.appendChild(sp);
+  const rawBtn=document.createElement("button"); rawBtn.className="ghost"; rawBtn.textContent="고급: 원본(YAML) 보기";
+  rawBtn.onclick=()=>openRaw(); bar.appendChild(rawBtn);
+  wrap.appendChild(bar);
+  c.appendChild(wrap);
+}
+
+function buildField(f, value){
+  const d=document.createElement("div"); d.className="field";
+  const lab=document.createElement("label"); lab.textContent=f.ko; d.appendChild(lab);
+  if(f.help){ const h=document.createElement("div"); h.className="help"; h.textContent=f.help; d.appendChild(h); }
+  let getter;
+  if(f.w==="text"){ const i=mk("input"); i.type="text"; i.value=value??""; if(f.ph)i.placeholder=f.ph; d.appendChild(i); getter=()=>i.value.trim()||undefined; }
+  else if(f.w==="textarea"){ const t=mk("textarea"); t.value=value??""; if(f.ph)t.placeholder=f.ph; d.appendChild(t); getter=()=>t.value.trim()||undefined; }
+  else if(f.w==="select"){ const s=mk("select"); f.options.forEach(([v,t])=>{const o=document.createElement("option");o.value=v;o.textContent=t;if(v===(value??""))o.selected=true;s.appendChild(o);}); d.appendChild(s); getter=()=>s.value||undefined; }
+  else if(f.w==="tags"){ const i=mk("input"); i.type="text"; i.value=Array.isArray(value)?value.join(", "):(value??""); i.placeholder="쉼표(,)로 구분"; d.appendChild(i);
+    getter=()=>{const a=i.value.split(",").map(x=>x.trim()).filter(Boolean); return a.length?a:undefined;}; }
+  else if(f.w==="lines"){ const t=mk("textarea"); t.style.minHeight="120px"; t.value=Array.isArray(value)?value.join("\n"):(value??""); t.placeholder="한 줄에 하나씩"; d.appendChild(t);
+    getter=()=>{const a=t.value.split("\n").map(x=>x.trim()).filter(Boolean); return a.length?a:undefined;}; }
+  else if(f.w==="props"){ getter=buildProps(d, value); }
+  else if(f.w==="kv"){ getter=buildKV(d, value, f.kko||"이름", f.vko||"값"); }
+  else if(f.w==="source"){ getter=buildSource(d, value); }
+  editors.push({k:f.k, get:getter});
+  return d;
+}
+function mk(tag){ return document.createElement(tag); }
+
+/* 속성 목록 표 */
+function buildProps(d, value){
+  const rows = Array.isArray(value)? JSON.parse(JSON.stringify(value)) : [];
+  const tbl=document.createElement("table"); tbl.className="mini";
+  tbl.innerHTML="<thead><tr><th>이름</th><th>타입</th><th>식별자</th><th>선택지(enum)</th><th></th></tr></thead>";
+  const tb=document.createElement("tbody"); tbl.appendChild(tb); d.appendChild(tbl);
+  function addRow(p){
+    const tr=document.createElement("tr");
+    const name=mk("input"); name.type="text"; name.value=p.name||""; name.placeholder="예: orderId";
+    const type=mk("select"); TYPE_OPTS.forEach(([v,t])=>{const o=document.createElement("option");o.value=v;o.textContent=t;if(v===(p.type||""))o.selected=true;type.appendChild(o);});
+    const idc=mk("input"); idc.type="checkbox"; idc.checked=!!p.identifier; idc.style.width="auto";
+    const vals=mk("input"); vals.type="text"; vals.value=Array.isArray(p.values)?p.values.join(", "):""; vals.placeholder="예: 생성, 결제, 취소";
+    const tds=[name,type,idc,vals].map(x=>{const td=document.createElement("td");td.appendChild(x);return td;});
+    tds[2].style.textAlign="center";
+    const dtd=document.createElement("td"); dtd.className="del";
+    const db=document.createElement("button"); db.textContent="×"; db.style.padding="4px 9px"; db.onclick=()=>tr.remove(); dtd.appendChild(db);
+    tds.forEach(td=>tr.appendChild(td)); tr.appendChild(dtd); tb.appendChild(tr);
+    tr.__get=()=>{ const o={name:name.value.trim(), type:type.value}; if(!o.name)return null;
+      if(idc.checked)o.identifier=true; const vv=vals.value.split(",").map(x=>x.trim()).filter(Boolean); if(vv.length)o.values=vv; return o; };
+  }
+  rows.forEach(addRow);
+  const add=document.createElement("button"); add.className="addrow"; add.textContent="+ 속성 추가"; add.onclick=()=>addRow({}); d.appendChild(add);
+  return ()=>{ const out=[]; tb.querySelectorAll("tr").forEach(tr=>{const o=tr.__get();if(o)out.push(o);}); return out.length?out:undefined; };
+}
+
+/* 키-값 표 */
+function buildKV(d, value, kko, vko){
+  const obj = (value && typeof value==="object" && !Array.isArray(value))? value : {};
+  const tbl=document.createElement("table"); tbl.className="mini";
+  tbl.innerHTML=`<thead><tr><th>${kko}</th><th>${vko}</th><th></th></tr></thead>`;
+  const tb=document.createElement("tbody"); tbl.appendChild(tb); d.appendChild(tbl);
+  function addRow(k,v){
+    const tr=document.createElement("tr");
+    const ki=mk("input"); ki.type="text"; ki.value=k||"";
+    const vi=mk("input"); vi.type="text"; vi.value=(v===undefined||v===null)?"":v;
+    const dtd=document.createElement("td"); dtd.className="del";
+    const db=document.createElement("button"); db.textContent="×"; db.style.padding="4px 9px"; db.onclick=()=>tr.remove(); dtd.appendChild(db);
+    [ki,vi].forEach(x=>{const td=document.createElement("td");td.appendChild(x);return tr.appendChild(td);}); tr.appendChild(dtd); tb.appendChild(tr);
+    tr.__get=()=>{ const kk=ki.value.trim(); if(!kk)return null; let vv=vi.value.trim();
+      if(/^-?\d+(\.\d+)?$/.test(vv)) vv=Number(vv); return [kk,vv]; };
+  }
+  Object.entries(obj).forEach(([k,v])=>addRow(k,v));
+  const add=document.createElement("button"); add.className="addrow"; add.textContent="+ 줄 추가"; add.onclick=()=>addRow("",""); d.appendChild(add);
+  return ()=>{ const out={}; tb.querySelectorAll("tr").forEach(tr=>{const kv=tr.__get();if(kv)out[kv[0]]=kv[1];}); return Object.keys(out).length?out:undefined; };
+}
+
+/* 출처: 문자/객체 모두 지원 */
+function buildSource(d, value){
+  if(value && typeof value==="object" && !Array.isArray(value)){
+    return buildKV(d, value, "구분", "내용");
+  }
+  const i=mk("input"); i.type="text"; i.value=value??""; i.placeholder="예: 쿠폰정책 v2.1, 3.2항"; d.appendChild(i);
+  return ()=> i.value.trim()||undefined;
+}
+
+function commitEdit(){
+  const item={};
+  editors.forEach(e=>{ const v=e.get(); if(v!==undefined) item[e.k]=v; });
+  // 원래 항목의 보존 필드(스키마에 없던 키)도 유지
+  if(state.editIdx>=0){ const orig=state.data[state.listKey][state.editIdx];
+    Object.keys(orig).forEach(k=>{ if(!(k in item) && !SCHEMA[state.listKey].fields.find(f=>f.k===k)) item[k]=orig[k]; }); }
+  if(state.editIdx>=0) state.data[state.listKey][state.editIdx]=item;
+  else state.data[state.listKey].push(item);
+  save((res)=>{ showResult(res); if(res && res.validation && res.validation.ok){ toast("저장되었습니다"); renderList(); } });
+}
+
+function showResult(res){
+  // 편집 화면이 유지된 경우에만 표시
+  const r=document.getElementById("result"); if(!r) return;
+  if(!res){ return; }
+  if(res.error){ r.className="result bad"; r.style.display="block"; r.innerHTML="저장 중 문제가 발생했어요: "+esc(res.error); return; }
+  const v=res.validation||{ok:true,output:""};
+  if(v.ok){ r.className="result ok"; r.style.display="block"; r.innerHTML="저장되고 점검을 통과했어요. ✓"; }
+  else { r.className="result bad"; r.style.display="block";
+    const lines=(v.output||"").split("\n").filter(l=>l.includes("ERROR")||l.includes("WARN"));
+    r.innerHTML="저장은 되었지만, 확인이 필요한 항목이 있어요:<pre>"+esc(lines.join("\n")||v.output)+"</pre>"; }
+}
+
+/* 저장: 구조 데이터를 서버에 보냄(서버가 YAML 로 기록) */
+async function save(cb){
+  const res = await api("/api/save",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({path:state.path, data:state.data})});
+  if(res && res.error){ toast("저장 실패"); }
+  // 저장 후 정규화된 내용 다시 읽기
+  if(res && res.saved){ const f=await api("/api/file?path="+encodeURIComponent(state.path)); state.data=f.data||state.data; }
+  if(cb) cb(res);
+}
+
+/* 고급: 원본 YAML 직접 편집 */
+async function openRaw(){
+  const f=await api("/api/file?path="+encodeURIComponent(state.path));
+  const c=document.getElementById("content"); c.innerHTML="";
+  const wrap=document.createElement("div"); wrap.className="formwrap";
+  wrap.innerHTML='<div class="field"><label>원본 YAML (전문가용)</label><div class="help">직접 수정한 뒤 저장하면 그대로 반영됩니다. 형식이 틀리면 저장되지 않아요.</div></div>';
+  const ta=document.createElement("textarea"); ta.className="rawbox"; ta.value=f.raw; wrap.appendChild(ta);
+  const bar=document.createElement("div"); bar.className="formbar";
+  const sv=document.createElement("button"); sv.className="primary"; sv.textContent="원본 저장";
+  sv.onclick=async()=>{ const res=await api("/api/save",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({path:state.path,raw:ta.value})});
+    if(res.error){ alert("저장 실패: "+res.error); return; } toast("저장되었습니다"); openFile(state.path); };
+  const back=document.createElement("button"); back.textContent="양식으로 돌아가기"; back.onclick=()=>openFile(state.path);
+  bar.appendChild(sv); bar.appendChild(back); wrap.appendChild(bar); c.appendChild(wrap);
+}
+
+function esc(s){ return String(s==null?"":s).replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m])); }
+
+loadTree();
+</script>
+</body>
+</html>

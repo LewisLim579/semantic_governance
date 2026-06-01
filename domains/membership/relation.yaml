@@ -1,0 +1,12 @@
+# 멤버십(membership) 도메인 관계(relation)
+# Station 은 common 개념 참조(도메인 격리: common 경유 OK)
+domain: membership
+
+relations:
+  - { id: subscribedBy, label: 가입회원,   from: MembershipSubscription, to: Member,  cardinality: "N:1", source: gold.membership.subscriptions.member_id }
+  - { id: joinedAt,     label: 가입충전소, from: MembershipSubscription, to: Station, cardinality: "N:1", source: gold.membership.subscriptions.join_site_code }
+  - { id: recordedFor,  label: 충전회원,   from: MembershipChargeRecord, to: Member,  cardinality: "N:1", source: gold.membership.charge_records.member_id }
+  - { id: chargedAt,    label: 충전충전소, from: MembershipChargeRecord, to: Station, cardinality: "N:1", source: "OCB 코드 ↔ Site Code 매핑" }
+  # 멤버십비중 = 멤버십판매량 / C4판매량(common)
+  - { id: derivedFrom,  label: 산출근거,   from: MembershipShare, to: MembershipSalesVolume, cardinality: "N:M", source: "4.#9" }
+  - { id: derivedFrom,  label: 산출근거,   from: MembershipShare, to: SalesVolume,           cardinality: "N:M", source: "4.#9" }

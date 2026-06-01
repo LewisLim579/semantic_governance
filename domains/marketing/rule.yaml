@@ -1,0 +1,24 @@
+# 마케팅(marketing) 도메인 규칙(rule)
+domain: marketing
+
+rules:
+  - id: R-201
+    label: 캠페인 예산 한도
+    applies_to: Campaign
+    constraint: "budget <= 100000000"
+    severity: error
+    source: "마케팅 집행 가이드 v1.2, 2.1항"
+
+  - id: R-202
+    label: 캠페인 기간 유효성
+    applies_to: Campaign
+    constraint: "startDate <= endDate"
+    severity: error
+    source: "마케팅 집행 가이드 v1.2, 3.3항"
+
+  - id: R-203
+    label: 동의 고객 대상 발송
+    applies_to: Segment
+    constraint: "all(member.marketingConsent == true)"
+    severity: error
+    source: "개인정보 마케팅 활용 동의 정책 v2.0"

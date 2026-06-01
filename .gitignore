@@ -1,0 +1,16 @@
+# OS / Editor
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# 빌드/적재 산출물 (적재본은 원천이 아님 — 커밋하지 않음)
+build/
+dist/
+*.log
+
+# 로컬 환경
+.env
+.venv/
+__pycache__/

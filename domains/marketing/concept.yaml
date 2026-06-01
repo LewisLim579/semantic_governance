@@ -1,0 +1,28 @@
+# 마케팅(marketing) 도메인 개념(concept)
+# common:Customer, common:Product 를 재사용하여 "공통 승격" 효과를 보여주는 예시
+domain: marketing
+
+concepts:
+  - id: Campaign
+    label: 캠페인
+    description: 특정 기간 동안 고객 세그먼트를 대상으로 상품을 홍보하는 마케팅 활동
+    properties:
+      - { name: campaignId, type: string,  identifier: true }
+      - { name: name,       type: string }
+      - { name: channel,    type: enum, values: [이메일, 푸시, SMS, 디스플레이] }
+      - { name: budget,     type: decimal }
+      - { name: startDate,  type: date }
+      - { name: endDate,    type: date }
+      - { name: status,     type: enum, values: [기획, 진행, 종료] }
+    source:
+      structured: gold.marketing.campaigns
+
+  - id: Segment
+    label: 고객세그먼트
+    description: 마케팅 대상이 되는 고객 묶음(기준에 따른 그룹)
+    properties:
+      - { name: segmentId, type: string, identifier: true }
+      - { name: name,      type: string }
+      - { name: criteria,  type: string }
+    source:
+      structured: gold.marketing.segments

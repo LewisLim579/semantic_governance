@@ -1,0 +1,24 @@
+# 재무(finance) 도메인 매핑(mapping) — 개념 ↔ Databricks Gold 연결
+domain: finance
+
+mappings:
+  - concept: Payment
+    source: databricks
+    catalog: gold.finance.payments    # Unity Catalog 경로
+    key: payment_id
+    property_map:
+      paymentId: payment_id
+      paidAt:    paid_at
+      amount:    paid_amount
+      method:    payment_method
+      status:    payment_status
+    filter: "is_deleted = false"
+
+  - concept: Account
+    source: databricks
+    catalog: gold.finance.accounts
+    key: account_id
+    property_map:
+      accountId: account_id
+      balance:   current_balance
+      openedAt:  opened_at

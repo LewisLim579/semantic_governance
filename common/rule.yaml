@@ -1,0 +1,18 @@
+# 공통 규칙(rule) — 전 도메인 적용 비즈니스 규칙
+# 규칙: id 는 R-###, severity 는 error(차단) / warning(경고)
+domain: common
+
+rules:
+  - id: R-000
+    label: 거래금액 음수 불가
+    applies_to: Transaction
+    constraint: "amount >= 0"
+    severity: error
+    source: "전사 데이터 품질 기준 v1.4, 2.1항"
+
+  - id: R-001
+    label: 통화코드 표준 준수
+    applies_to: Transaction
+    constraint: "currency in ['KRW', 'USD', 'EUR', 'JPY']"
+    severity: warning
+    source: "전사 데이터 품질 기준 v1.4, 2.3항"

@@ -1,0 +1,6 @@
+# 재무(finance) 도메인 관계(relation)
+domain: finance
+
+relations:
+  - { id: paidBy,      label: 결제자, from: Payment, to: Customer, cardinality: "N:1", source: gold.finance.payments.customer_id }
+  - { id: settledTo,   label: 정산계좌, from: Payment, to: Account,  cardinality: "N:1", source: gold.finance.payments.account_id }

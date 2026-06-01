@@ -1,0 +1,22 @@
+# 충전소 영업분석(station_sales) 도메인 관계(relation)
+# 지표 간 산출 관계(derivedFrom)로 계산식 그래프를 표현한다.
+domain: station_sales
+
+relations:
+  # MC = 가격할인 + 매출할인(단가)
+  - { id: derivedFrom, label: 산출근거, from: MC, to: PriceDiscount,     cardinality: "N:M", source: "4.#1" }
+  - { id: derivedFrom, label: 산출근거, from: MC, to: SalesDiscountUnit, cardinality: "N:M", source: "4.#1" }
+
+  # TMC = MC + 수송비 + 지원기회비용 + 임대손익
+  - { id: derivedFrom, label: 산출근거, from: TMC, to: MC,                     cardinality: "N:M", source: "4.#5" }
+  - { id: derivedFrom, label: 산출근거, from: TMC, to: TransportCost,          cardinality: "N:M", source: "4.#5" }
+  - { id: derivedFrom, label: 산출근거, from: TMC, to: SupportOpportunityCost, cardinality: "N:M", source: "4.#5" }
+  - { id: derivedFrom, label: 산출근거, from: TMC, to: RentProfitLoss,         cardinality: "N:M", source: "4.#5" }
+
+  # 기여이익단가 = 공헌이익단가 − TMC
+  - { id: derivedFrom, label: 산출근거, from: ProfitContributionUnit, to: ContributionMarginUnit, cardinality: "N:M", source: "4.#6" }
+  - { id: derivedFrom, label: 산출근거, from: ProfitContributionUnit, to: TMC,                     cardinality: "N:M", source: "4.#6" }
+
+  # 기여이익 = 기여이익단가 × 판매량(공통)
+  - { id: derivedFrom, label: 산출근거, from: ProfitContribution, to: ProfitContributionUnit, cardinality: "N:M", source: "4.#7" }
+  - { id: derivedFrom, label: 산출근거, from: ProfitContribution, to: SalesVolume,            cardinality: "N:M", source: "4.#7" }

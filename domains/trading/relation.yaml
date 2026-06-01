@@ -1,0 +1,7 @@
+# 거래(trading) 도메인 관계(relation)
+domain: trading
+
+relations:
+  - { id: placedBy,      label: 주문자, from: Order, to: Customer, cardinality: "N:1", source: gold.trading.orders.customer_id }
+  - { id: contains,      label: 포함,   from: Order, to: Product,  cardinality: "1:N" }
+  - { id: appliedCoupon, label: 적용쿠폰, from: Order, to: Coupon,  cardinality: "N:1", source: gold.trading.order_coupons }

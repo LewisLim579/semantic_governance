@@ -1,0 +1,33 @@
+# 공통 관계(relation) — 도메인 공용 관계 정의
+# 규칙: id 는 camelCase, from/to 는 concept.id 참조
+domain: common
+
+relations:
+  - id: ownedBy
+    label: 소유주체
+    from: Transaction
+    to: Party
+    cardinality: "N:1"
+    source: "전사 표준용어 사전 v3.0"
+
+  - id: identifiesAs
+    label: 고객식별
+    from: Customer
+    to: Party
+    cardinality: "1:1"
+    source: "전사 표준용어 사전 v3.0"
+
+  # ── LPG 충전소 영업 공통 관계 ─────────────────────────
+  - id: mappedToDealer
+    label: 거래처매핑
+    from: Station
+    to: Dealer
+    cardinality: "N:1"
+    source: "Site Code ↔ 거래처코드 매핑(지원요청 #2)"
+
+  - id: measuredAt
+    label: 측정충전소
+    from: SalesVolume
+    to: Station
+    cardinality: "N:1"
+    source: "데이터 항목 정의서, 집계 기준(월별/충전소별)"
